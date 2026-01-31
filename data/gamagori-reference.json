@@ -1,0 +1,179 @@
+{
+  "facilities": [
+    {
+      "name": "ゆとりーな蒲郡",
+      "kana": "ゆとりーながまごおり",
+      "variations": ["ユトリーナ蒲郡", "ゆとりーな", "ユトリーナ", "Yutorina Gamagori"],
+      "category": "医療・保健・福祉施設",
+      "description": "温浴施設"
+    },
+    {
+      "name": "寿楽荘",
+      "kana": "じゅらくそう",
+      "variations": ["じゅらくそう", "寿楽荘", "Jurakuso"],
+      "category": "医療・保健・福祉施設",
+      "description": "老人福祉センター"
+    },
+    {
+      "name": "蒲郡市民病院",
+      "kana": "がまごおりしみんびょういん",
+      "variations": ["市民病院", "蒲郡市民病院", "Gamagori City Hospital"],
+      "category": "医療・保健・福祉施設"
+    },
+    {
+      "name": "蒲郡市保健医療センター",
+      "kana": "がまごおりしほけんいりょうせんたー",
+      "variations": ["保健医療センター", "蒲郡市保健医療センター"],
+      "category": "医療・保健・福祉施設"
+    },
+    {
+      "name": "蒲郡市民体育センター",
+      "kana": "がまごおりしみんたいいくせんたー",
+      "variations": ["市民体育センター", "蒲郡市民体育センター"],
+      "category": "運動施設"
+    },
+    {
+      "name": "蒲郡市民会館",
+      "kana": "がまごおりしみんかいかん",
+      "variations": ["市民会館", "蒲郡市民会館"],
+      "category": "文化施設"
+    }
+  ],
+  "locations": [
+    {
+      "name": "宇連ダム",
+      "kana": "うれだむ",
+      "variations": ["宇連ダム", "ウレダム", "Ure Dam"],
+      "type": "水源"
+    },
+    {
+      "name": "大塚町",
+      "kana": "おおつかちょう",
+      "variations": ["大塚町", "大塚"],
+      "type": "地区"
+    },
+    {
+      "name": "豊岡町",
+      "kana": "とよおかちょう",
+      "variations": ["豊岡町", "豊岡"],
+      "type": "地区"
+    },
+    {
+      "name": "清田町",
+      "kana": "きよたちょう",
+      "variations": ["清田町", "清田"],
+      "type": "地区"
+    },
+    {
+      "name": "形原町",
+      "kana": "かたはらちょう",
+      "variations": ["形原町", "形原"],
+      "type": "地区"
+    },
+    {
+      "name": "三谷町",
+      "kana": "みやちょう",
+      "variations": ["三谷町", "三谷"],
+      "type": "地区"
+    },
+    {
+      "name": "西浦町",
+      "kana": "にしうらちょう",
+      "variations": ["西浦町", "西浦"],
+      "type": "地区"
+    }
+  ],
+  "meetingTypes": [
+    {
+      "name": "定例会",
+      "kana": "ていれいかい",
+      "variations": ["定例会", "定例議会"],
+      "dbValue": "regular",
+      "description": "年4回（3月、6月、9月、12月）開催される通常の議会"
+    },
+    {
+      "name": "臨時会",
+      "kana": "りんじかい",
+      "variations": ["臨時会", "臨時議会"],
+      "dbValue": "extraordinary",
+      "description": "必要に応じて開催される特別な議会"
+    },
+    {
+      "name": "委員会",
+      "kana": "いいんかい",
+      "variations": ["委員会", "常任委員会", "特別委員会"],
+      "dbValue": "committee",
+      "description": "特定の分野について審議する委員会"
+    }
+  ],
+  "politicalTerms": [
+    {
+      "term": "議案",
+      "kana": "ぎあん",
+      "variations": ["議案", "第○号議案"],
+      "description": "議会に提出される審議事項"
+    },
+    {
+      "term": "補正予算",
+      "kana": "ほせいよさん",
+      "variations": ["補正予算", "予算補正"],
+      "description": "当初予算を変更する予算"
+    },
+    {
+      "term": "一般質問",
+      "kana": "いっぱんしつもん",
+      "variations": ["一般質問", "質問"],
+      "description": "議員が市政全般について質問すること"
+    },
+    {
+      "term": "採決",
+      "kana": "さいけつ",
+      "variations": ["採決", "表決"],
+      "description": "議案について賛否を決定すること"
+    },
+    {
+      "term": "諸般の報告",
+      "kana": "しょはんのほうこく",
+      "variations": ["諸般の報告", "諸般報告"],
+      "description": "議会開会時に行われる各種報告"
+    },
+    {
+      "term": "節水対策",
+      "kana": "せっすいたいさく",
+      "variations": ["節水対策", "節水措置", "節水協力"],
+      "description": "水不足に対応するための対策"
+    },
+    {
+      "term": "物価高騰",
+      "kana": "ぶっかこうとう",
+      "variations": ["物価高騰", "物価上昇", "価格高騰"],
+      "description": "物の価格が上昇すること"
+    }
+  ],
+  "positions": [
+    {
+      "title": "議長",
+      "kana": "ぎちょう",
+      "variations": ["議長", "市議会議長"],
+      "description": "議会の代表者"
+    },
+    {
+      "title": "副議長",
+      "kana": "ふくぎちょう",
+      "variations": ["副議長", "市議会副議長"],
+      "description": "議長を補佐する役職"
+    },
+    {
+      "title": "市長",
+      "kana": "しちょう",
+      "variations": ["市長", "蒲郡市長"],
+      "description": "市の執行機関の長"
+    },
+    {
+      "title": "副市長",
+      "kana": "ふくしちょう",
+      "variations": ["副市長"],
+      "description": "市長を補佐する役職"
+    }
+  ]
+}
