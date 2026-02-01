@@ -1,5 +1,5 @@
-import { loadGamagoriReference } from "@/lib/load-reference";
-import type { GamagoriReference } from "@/types";
+import { loadGamagoriReference, loadComprehensiveDictionary } from "@/lib/load-reference";
+import type { GamagoriReference, ComprehensiveDictionary } from "@/types";
 
 // 使用可能なタグ一覧
 export const AVAILABLE_TAGS = [
@@ -53,11 +53,52 @@ const SYSTEM_PROMPT = `あなたは蒲郡市の情報を発信する、親しみ
 - 1つの段落は2〜3文程度に抑え、長文にしない
 - 読みやすさを最優先にする
 
-【参照データの使用】
-- 議員名・施設名・地名・役職は参照データの正式表記のみ使用
-- 参照データにない名前は「関係者」「担当者」と表記`;
+【参照データの使用 - 厳守事項】
+- 議員名は必ず下記リストの表記と完全一致させること（漢字・読み仮名を勝手に変えない）
+- リストにない人物名は絶対に記載しない。「議員」「関係者」「担当者」「質問者」等の一般名詞で代替する
+- 音声認識の誤りで議員名が不明瞭な場合も推測せず「議員」と表記
+- 施設名・地名・役職も参照データの正式表記のみ使用
+- 数字（金額・日付・人数等）は文字起こしに明記されているもののみ記載し、推測しない`;
 
-function buildReferenceContext(reference: GamagoriReference, councilNames: string[]): string {
+function buildReferenceContext(reference: GamagoriReference, councilNames: string[], dict?: ComprehensiveDictionary): string {
+  // 包括的辞書がある場合はそちらを優先
+  if (dict) {
+    const facilities = dict.facilities.map((f) => f.name).join("、");
+    const districts = dict.districts.map((d) => d.name).join("、");
+    const committees = dict.committees.map((c) => c.name).join("、");
+    const factions = dict.factions.map((f) => `${f.name}（${f.shortName}）`).join("、");
+    const meetingTypes = dict.meetingTypes.map((m) => `${m.name}（${m.type}）`).join("、");
+    const politicalTerms = dict.politicalTerms.map((t) => `${t.term}: ${t.description}`).slice(0, 10).join("\n");
+    const adminTerms = dict.administrativeTerms.map((t) => `${t.term}: ${t.description}`).slice(0, 10).join("\n");
+
+    // 議員名はフルネームと役職を含める
+    const councilMemberList = dict.councilMembers
+      .map((m) => m.role ? `${m.name}（${m.role}）` : m.name)
+      .join("、");
+
+    // 市長・副市長
+    const executives = dict.cityExecutives?.map((e) => `${e.position}: ${e.name}（${e.reading}）`).join("、") || "";
+
+    return `
+【市長・副市長（このリストの表記のみ使用すること）】
+${executives}
+
+【議員名（このリストの表記のみ使用すること・推測禁止）】
+${councilMemberList}
+
+【会派】${factions}
+【委員会】${committees}
+【施設名】${facilities}
+【町名・地区名】${districts}
+【議会種類】${meetingTypes}
+【議会用語】
+${politicalTerms}
+【行政用語】
+${adminTerms}
+`;
+  }
+
+  // フォールバック: 従来のreference.jsonを使用
   const facilities = reference.facilities.map((f) => f.name).join("、");
   const locations = reference.locations.map((l) => l.name).join("、");
   const meetingTypes = reference.meetingTypes.map((m) => `${m.name}（${m.dbValue}）`).join("、");
@@ -69,7 +110,7 @@ function buildReferenceContext(reference: GamagoriReference, councilNames: strin
 【議会種類】${meetingTypes || "（なし）"}
 【議会用語】${terms || "（なし）"}
 【役職】${positions || "（なし）"}
-【議員名（このリストのみ使用すること）】${councilNames.length ? councilNames.join("、") : "（市役所HPの議員名簿で取得・未取得の場合は省略）"}
+【議員名（このリストのみ使用すること）】${councilNames.length ? councilNames.join("、") : "（未取得）"}
 `;
 }
 
@@ -87,8 +128,22 @@ export async function summarizeTranscript(
   }
 
   const reference = loadGamagoriReference();
-  const councilNames = options.councilMemberNames ?? [];
-  const refContext = buildReferenceContext(reference, councilNames);
+  const dict = loadComprehensiveDictionary();
+  let councilNames = options.councilMemberNames ?? [];
+
+  // 包括的辞書から議員名を取得（優先）
+  if (dict?.councilMembers?.length) {
+    councilNames = dict.councilMembers.map((m) => m.name);
+    console.log(`📋 包括的辞書から議員名${councilNames.length}名を読み込みました`);
+  } else if (councilNames.length === 0 && reference.councilMembers?.length) {
+    // DBから議員名が取得できない場合はJSONのデータをフォールバックとして使用
+    councilNames = reference.councilMembers.map((m) => m.name);
+    console.log(`📋 旧JSONから議員名${councilNames.length}名を読み込みました`);
+  } else if (councilNames.length === 0) {
+    console.warn("⚠️ 議員名リストが空です。ハルシネーション防止のため議員名を登録してください。");
+  }
+
+  const refContext = buildReferenceContext(reference, councilNames, dict);
 
   const userContent = `
 【システム指示】
@@ -131,7 +186,7 @@ ${transcript.slice(0, 120000)}
             contents: [{ parts: [{ text: userContent }] }],
             generationConfig: {
               temperature: 0.3,
-              maxOutputTokens: 4096,
+              maxOutputTokens: 8192,
             },
           }),
         }
@@ -162,7 +217,7 @@ ${transcript.slice(0, 120000)}
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: userContent },
         ],
-        max_tokens: 4096,
+        max_tokens: 8192,
         temperature: 0.3,
       }),
     });
@@ -191,7 +246,7 @@ ${transcript.slice(0, 120000)}
   }
 
   // タグを抽出
-  const validTagIds = AVAILABLE_TAGS.map((t) => t.id);
+  const validTagIds: string[] = AVAILABLE_TAGS.map((t) => t.id);
   let tags: string[] = [];
   const tagsMatch = content.match(/タグ:\s*(.+?)(\n|$)/m);
   if (tagsMatch) {

@@ -69,4 +69,80 @@ export interface GamagoriReference {
     variations: string[];
     description: string;
   }>;
+  councilMembers?: Array<{
+    name: string;
+    kana: string;
+    party?: string;
+  }>;
+}
+
+// 包括的辞書の型定義
+export interface ComprehensiveDictionary {
+  version: string;
+  lastUpdated: string;
+  description: string;
+  councilMembers: Array<{
+    name: string;
+    reading: string;
+    faction: string;
+    seatNumber: number;
+    terms: number;
+    role?: string;
+    variations: string[];
+  }>;
+  districts: Array<{
+    name: string;
+    reading: string;
+    zipCode: string;
+    variations: string[];
+  }>;
+  facilities: Array<{
+    name: string;
+    category: string;
+    reading: string;
+    variations: string[];
+  }>;
+  committees: Array<{
+    name: string;
+    type: string;
+    reading: string;
+    chairperson?: string;
+    variations: string[];
+  }>;
+  factions: Array<{
+    name: string;
+    shortName: string;
+    members: number;
+    reading: string;
+    variations: string[];
+  }>;
+  meetingTypes: Array<{
+    name: string;
+    type: string;
+    reading: string;
+    description: string;
+    variations: string[];
+  }>;
+  politicalTerms: Array<{
+    term: string;
+    reading: string;
+    description: string;
+    variations: string[];
+  }>;
+  administrativeTerms: Array<{
+    term: string;
+    reading: string;
+    description: string;
+    variations: string[];
+  }>;
+  cityExecutives?: Array<{
+    position: string;
+    name: string;
+    reading: string;
+    birthDate?: string;
+    termStart: string;
+    termNumber: number;
+    background?: string;
+    variations: string[];
+  }>;
 }
