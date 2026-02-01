@@ -1,33 +1,17 @@
+"use client";
+
 import Link from "next/link";
 import type { ArticleWithVideo } from "@/types";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { formatDate as formatDateByLang } from "@/lib/i18n/translations";
 
-const SESSION_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  regular: { label: "定例会", color: "text-blue-700", bg: "bg-blue-100" },
-  extraordinary: { label: "臨時会", color: "text-purple-700", bg: "bg-purple-100" },
-  committee: { label: "委員会", color: "text-green-700", bg: "bg-green-100" },
-};
-
-function formatDate(iso: string | null) {
-  if (!iso) return "—";
-  try {
-    return new Date(iso).toLocaleDateString("ja-JP", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  } catch {
-    return "—";
-  }
-}
-
-function getReadingTime(text: string | null): string {
-  if (!text) return "1分";
+function getReadingTimeMinutes(text: string | null): number {
+  if (!text) return 1;
   const charCount = text.length;
-  const minutes = Math.max(1, Math.ceil(charCount / 600));
-  return `${minutes}分`;
+  return Math.max(1, Math.ceil(charCount / 600));
 }
 
-// デフォルトのプレースホルダーサムネイル（画像がない場合）
+// Default placeholder thumbnail (when no image available)
 function DefaultThumbnail({ sessionType }: { sessionType: string | null }) {
   const colors = {
     regular: "from-blue-100 to-sky-50",
@@ -47,22 +31,33 @@ function DefaultThumbnail({ sessionType }: { sessionType: string | null }) {
 }
 
 export function ArticleCard({ article, featured = false }: { article: ArticleWithVideo; featured?: boolean }) {
+  const { lang, t } = useLanguage();
   const video = article.video as { title?: string; published_at?: string; youtube_video_id?: string } | null;
-  const title = article.title || video?.title || "（タイトルなし）";
+  const title = article.title || video?.title || t.articles.noTitle;
   const date = video?.published_at ?? article.processed_at;
-  const sessionConfig = SESSION_CONFIG[article.session_type ?? ""] ?? { label: "議会", color: "text-gray-700", bg: "bg-gray-100" };
 
-  // サムネイルURL（優先順位: thumbnail_url > YouTubeサムネイル）
+  // Get session config with translations
+  const sessionConfigMap: Record<string, { label: string; color: string; bg: string }> = {
+    regular: { label: t.session.regular, color: "text-blue-700", bg: "bg-blue-100" },
+    extraordinary: { label: t.session.extraordinary, color: "text-purple-700", bg: "bg-purple-100" },
+    committee: { label: t.session.committee, color: "text-green-700", bg: "bg-green-100" },
+  };
+  const sessionConfig = sessionConfigMap[article.session_type ?? ""] ?? { label: t.session.default, color: "text-gray-700", bg: "bg-gray-100" };
+
+  // Thumbnail URL (priority: thumbnail_url > YouTube thumbnail)
   const thumbnailUrl = (article as { thumbnail_url?: string | null }).thumbnail_url || (video?.youtube_video_id
     ? `https://img.youtube.com/vi/${video.youtube_video_id}/maxresdefault.jpg`
     : null);
+
+  const readingMinutes = getReadingTimeMinutes(article.summary);
+  const formattedDate = formatDateByLang(date, lang);
 
   if (featured) {
     return (
       <Link href={`/articles/${article.id}`} className="group block">
         <article className="relative overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300">
           <div className="grid md:grid-cols-2 gap-0">
-            {/* サムネイル */}
+            {/* Thumbnail */}
             <div className="relative aspect-video md:aspect-auto overflow-hidden">
               {thumbnailUrl ? (
                 <img
@@ -79,20 +74,20 @@ export function ArticleCard({ article, featured = false }: { article: ArticleWit
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    図解あり
+                    {t.articles.hasInfographic}
                   </span>
                 </div>
               )}
             </div>
 
-            {/* コンテンツ */}
+            {/* Content */}
             <div className="p-6 md:p-8 flex flex-col justify-center">
               <div className="flex items-center gap-3 mb-4">
                 <span className={`${sessionConfig.bg} ${sessionConfig.color} text-xs font-semibold px-3 py-1 rounded-full`}>
                   {sessionConfig.label}
                 </span>
                 <span className="text-xs text-gray-400">
-                  {formatDate(date)}
+                  {formattedDate}
                 </span>
               </div>
 
@@ -111,10 +106,10 @@ export function ArticleCard({ article, featured = false }: { article: ArticleWit
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  約{getReadingTime(article.summary)}で読める
+                  {t.articles.about}{readingMinutes}{t.articles.minutes}{t.articles.readingTime}
                 </span>
                 <span className="inline-flex items-center text-orange-600 text-sm font-medium group-hover:translate-x-1 transition-transform">
-                  記事を読む
+                  {t.articles.readArticle}
                   <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
@@ -130,7 +125,7 @@ export function ArticleCard({ article, featured = false }: { article: ArticleWit
   return (
     <Link href={`/articles/${article.id}`} className="group block h-full">
       <article className="h-full flex flex-col overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-        {/* サムネイル */}
+        {/* Thumbnail */}
         <div className="relative aspect-video overflow-hidden shrink-0">
           {thumbnailUrl ? (
             <img
@@ -142,7 +137,7 @@ export function ArticleCard({ article, featured = false }: { article: ArticleWit
             <DefaultThumbnail sessionType={article.session_type} />
           )}
 
-          {/* バッジ */}
+          {/* Badges */}
           <div className="absolute top-3 left-3 flex gap-2">
             <span className={`${sessionConfig.bg} ${sessionConfig.color} text-xs font-bold px-3 py-1 rounded-full backdrop-blur-md shadow-sm`}>
               {sessionConfig.label}
@@ -152,19 +147,19 @@ export function ArticleCard({ article, featured = false }: { article: ArticleWit
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                図解
+                {t.articles.infographic}
               </span>
             )}
           </div>
         </div>
 
-        {/* コンテンツ */}
+        {/* Content */}
         <div className="p-5 flex flex-col flex-grow">
           <div className="flex items-center gap-2 text-xs text-gray-400 mb-3 font-medium">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            {formatDate(date)}
+            {formattedDate}
           </div>
 
           <h3 className="text-lg font-bold text-gray-900 line-clamp-2 group-hover:text-orange-600 transition-colors mb-3 leading-snug">
@@ -182,10 +177,10 @@ export function ArticleCard({ article, featured = false }: { article: ArticleWit
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              約{getReadingTime(article.summary)}で読める
+              {t.articles.about}{readingMinutes}{t.articles.minutes}{t.articles.readingTime}
             </span>
             <span className="text-sm font-bold text-orange-600 flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-              読む
+              {t.articles.read}
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>

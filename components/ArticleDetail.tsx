@@ -3,62 +3,77 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import type { ArticleWithVideo } from "@/types";
-
-const TABS = [
-  {
-    id: "summary",
-    label: "要約",
-    icon: "M13 10V3L4 14h7v7l9-11h-7z",
-    description: "わかりやすい要約"
-  },
-  {
-    id: "transcript",
-    label: "全文",
-    icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
-    description: "文字起こし全文"
-  },
-] as const;
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export function ArticleDetail({ article }: { article: ArticleWithVideo }) {
-  const [active, setActive] = useState<typeof TABS[number]["id"]>("summary");
+  const { t } = useLanguage();
+
+  const TABS = [
+    {
+      id: "summary",
+      label: t.detail.summary,
+      icon: "M13 10V3L4 14h7v7l9-11h-7z",
+      description: t.detail.summaryDesc
+    },
+    {
+      id: "transcript",
+      label: t.detail.transcript,
+      icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
+      description: t.detail.transcriptDesc
+    },
+  ] as const;
+
+  const [active, setActive] = useState<"summary" | "transcript">("summary");
   const video = article.video as { youtube_video_id?: string; title?: string } | null;
 
   return (
     <div className="space-y-6">
-      {/* インフォグラフィック（トップに大きく表示） */}
+      {/* Infographic (displayed at top) */}
       {article.infographic_url && (
         <div className="glass rounded-2xl overflow-hidden p-4 md:p-6">
           <div className="flex justify-center">
             <img
               src={article.infographic_url}
-              alt="議会内容のインフォグラフィック"
+              alt={t.detail.infographicAlt}
               className="max-w-full h-auto rounded-xl shadow-lg"
             />
           </div>
         </div>
       )}
 
-      {/* 元動画ボタン */}
+      {/* Original video info */}
       {video?.youtube_video_id && (
-        <div className="flex items-center gap-3">
-          <a
-            href={`https://www.youtube.com/watch?v=${video.youtube_video_id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-full transition-colors"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-            </svg>
-            元の動画を見る
-          </a>
-          <span className="text-sm text-gray-500">YouTubeで視聴</span>
+        <div className="glass rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+              <svg className="w-5 h-5 text-red-600" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-gray-500 mb-1">{t.detail.originalVideo}</p>
+              <p className="text-sm font-medium text-gray-900 line-clamp-2">
+                {video.title || t.detail.unknownTitle}
+              </p>
+              <a
+                href={`https://www.youtube.com/watch?v=${video.youtube_video_id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 mt-2 text-sm text-red-600 hover:text-red-700 font-medium transition-colors"
+              >
+                {t.detail.watchOnYoutube}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* タブコンテンツ */}
+      {/* Tab content */}
       <div className="glass rounded-2xl overflow-hidden">
-        {/* タブヘッダー */}
+        {/* Tab header */}
         <div className="flex border-b border-gray-200/50">
           {TABS.map((tab) => (
             <button
@@ -82,7 +97,7 @@ export function ArticleDetail({ article }: { article: ArticleWithVideo }) {
           ))}
         </div>
 
-        {/* タブコンテンツ */}
+        {/* Tab content */}
         <div className="p-6 md:p-8">
           {active === "summary" && (
             <div className="animate-fade-in">
@@ -132,8 +147,8 @@ export function ArticleDetail({ article }: { article: ArticleWithVideo }) {
               ) : (
                 <EmptyState
                   icon="M13 10V3L4 14h7v7l9-11h-7z"
-                  title="要約はまだありません"
-                  description="AIが要約を生成中です。しばらくお待ちください。"
+                  title={t.detail.noSummary}
+                  description={t.detail.noSummaryDesc}
                 />
               )}
             </div>
@@ -150,8 +165,8 @@ export function ArticleDetail({ article }: { article: ArticleWithVideo }) {
               ) : (
                 <EmptyState
                   icon="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  title="文字起こしはまだありません"
-                  description="AIが文字起こしを処理中です。しばらくお待ちください。"
+                  title={t.detail.noTranscript}
+                  description={t.detail.noTranscriptDesc}
                 />
               )}
             </div>
